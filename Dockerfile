@@ -1,5 +1,6 @@
 FROM php:8.1.1-fpm
 
+
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -7,20 +8,34 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     zip \
-    unzip
+    unzip \
+    nano \
+    nginx \
+    openrc \
+    bash \
+    systemctl \
+    librdkafka-dev
 
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd sockets
 
-RUN usermod -u 1000 www-data
+
+RUN docker-php-ext-install pdo pdo_mysql bcmath
+RUN pecl install rdkafka
+
+RUN ln -s /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini && \
+    echo "extension=rdkafka.so" >> /usr/local/etc/php/php.ini
 
 WORKDIR /var/www
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+#RUN rm -rf /var/www/html
+COPY . .
 
-RUN pecl install -o -f redis \
-    &&  rm -rf /tmp/pear \
-    &&  docker-php-ext-enable redis
+#RUN ln -s public html
 
-USER www-data
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-EXPOSE 9000
+COPY .docker/nginx/nginx.conf /etc/nginx/conf.d
+RUN chmod -R 777 /var/www/storage/
+
+EXPOSE 80
+CMD ["php-fpm"]
+CMD ["nginx", "-g", "daemon off;"]
