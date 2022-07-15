@@ -17,7 +17,7 @@ RUN ln -s public html
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-COPY .docker/nginx/nginx.conf /etc/nginx/conf.d/nginx.conf
+COPY .docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY . .
 RUN chmod -R 777 /var/www/storage/
 
